@@ -31,3 +31,21 @@ function f() {
 var g = f();
 g(); // returns 11;
 ```
+上面的例子里，`g`可以获取到`f`函数里定义的`a`变量。 每当`g`被调用时，它都可以访问到`f`里的`a`变量。 即使当`g`在`f`已经执行完后才被调用，它仍然可以访问及修改`a`。
+```
+function f() {
+    var a = 1;
+
+    a = 2;
+    var b = g();
+    a = 3;
+
+    return b;
+
+    function g() {
+        return a;
+    }
+}
+
+f(); // returns 2
+```
