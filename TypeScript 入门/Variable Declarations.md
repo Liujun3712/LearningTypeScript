@@ -140,3 +140,92 @@ let hello = "Hello!";
 主要的区别不在语法上，而是语义，我们接下来会深入研究。   
 ###块作用域
 当用`let`声明一个变量，它使用的是*词法作用域*或*块作用域*。 不同于使用`var`声明的变量那样可以在包含它们的函数外访问，块作用域变量在包含它们的块或`for`循环之外是不能访问的。
+```
+function f(input: boolean) {
+    let a = 100;
+
+    if (input) {
+        // Still okay to reference 'a'
+        let b = a + 1;
+        return b;
+    }
+
+    // Error: 'b' doesn't exist here
+    return b;
+}
+```
+这里我们定义了2个变量`a`和`b`。 `a`的作用域是`f`函数体内，而`b`的作用域是`if`语句块里。
+
+在`catch`语句里声明的变量也具有同样的作用域规则。
+```
+try {
+    throw "oh no!";
+}
+catch (e) {
+    console.log("Oh well.");
+}
+
+// Error: 'e' doesn't exist here
+console.log(e);
+```
+拥有块级作用域的变量的另一个特点是，它们不能在被声明之前读或写。 虽然这些变量始终“存在”于它们的作用域里，但在直到声明它的代码之前的区域都属于暂时性死区。 它只是用来说明我们不能在`let`语句之前访问它们，幸运的是TypeScript可以告诉我们这些信息。   
+```
+a++; // illegal to use 'a' before it's declared;
+let a;
+```
+注意一点，我们仍然可以在一个拥有块作用域变量被声明前获取它。 只是我们不能在变量声明前去调用那个函数。 如果生成代码目标为ES2015，现代的运行时会抛出一个错误；然而，现今TypeScript是不会报错的。
+```
+function foo() {
+    // okay to capture 'a'
+    return a;
+}
+
+// 不能在'a'被声明前调用'foo'
+// 运行时应该抛出错误
+foo();
+
+let a;
+```
+关于暂时性死区的更多信息，查看这里[Mozilla Developer Network](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let#Temporal_dead_zone_and_errors_with_let).
+###重定义及屏蔽
+我们提过使用`var`声明时，它不在乎你声明多少次；你只会得到1个。
+```
+function f(x) {
+    var x;
+    var x;
+
+    if (true) {
+        var x;
+    }
+}
+```
+在上面的例子里，所有`x`的声明实际上都引用一个相同的`x`，并且这是完全有效的代码。 这经常会成为bug的来源。 好的是，`let`声明就不会这么宽松了。
+```
+let x = 10;
+let x = 20; // 错误，不能在1个作用域里多次声明`x`
+```
+并不是要求两个均是块级作用域的声明TypeScript才会给出一个错误的警告。
+```
+function f(x) {
+    let x = 100; // error: interferes with parameter declaration
+}
+
+function g() {
+    let x = 100;
+    var x = 100; // error: can't have both declarations of 'x'
+}
+```
+并不是说块级作用域变量不能用函数作用域变量来声明。 而是块级作用域变量需要在明显不同的块里声明。
+```
+function f(condition, x) {
+    if (condition) {
+        let x = 100;
+        return x;
+    }
+
+    return x;
+}
+
+f(false, 0); // returns 0
+f(true, 0);  // returns 100
+```
