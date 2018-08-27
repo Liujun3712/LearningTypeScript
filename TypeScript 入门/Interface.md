@@ -205,6 +205,21 @@ interface NotOkay {
     [x: string]: Dog;
 }
 ```
-
-
+字符串索引签名能够很好的描述`dictionary`模式，并且它们也会确保所有属性与其返回值类型相匹配。 因为字符串索引声明了`obj.property`和`obj["property"]`两种形式都可以。 下面的例子里，`name`的类型与字符串索引类型不匹配，所以类型检查器给出一个错误提示：
+```
+interface NumberDictionary {
+  [index: string]: number;
+  length: number;    // 可以，length是number类型
+  name: string       // 错误，`name`的类型与索引类型返回值的类型不匹配
+}
+```
+最后，你可以将索引签名设置为只读，这样就防止了给索引赋值：
+```
+interface ReadonlyStringArray {
+    readonly [index: number]: string;
+}
+let myArray: ReadonlyStringArray = ["Alice", "Bob"];
+myArray[2] = "Mallory"; // error!
+```
+你不能设置`myArray[2]`，因为索引签名是只读的。
 
